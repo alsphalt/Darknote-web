@@ -1,0 +1,146 @@
+/* ──────────────── Base Wrapper ──────────────── */
+.boardWrapper {
+  display: inline-block;
+  padding: 24px;
+  background: #2c3e50;
+  border-radius: 28px;
+  transition: all 0.3s ease;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+}
+
+.board {
+  display: grid;
+  grid-template-columns: repeat(15, 1fr);
+  grid-template-rows: repeat(15, 1fr);
+  gap: 2px;
+  width: 90vmin;
+  max-width: 620px;
+  aspect-ratio: 1 / 1;
+  background: #1a1a2e;
+  border-radius: 16px;
+  padding: 6px;
+  position: relative;
+  transition: transform 0.3s ease;
+}
+
+.cell {
+  aspect-ratio: 1 / 1;
+  border-radius: 2px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+/* ──────────────── Home Bases ──────────────── */
+.home-red   { background: #e74c3c; }
+.home-green { background: #2ecc71; }
+.home-yellow{ background: #f1c40f; }
+.home-blue  { background: #3498db; }
+
+/* Path cells */
+.path { background: #fdf5e6; }
+
+/* Centre (white area) */
+.centre { background: #ffffff; }
+
+/* ──────────────── Tokens ──────────────── */
+.token {
+  width: 65%;
+  height: 65%;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.9);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  transition: transform 0.2s ease;
+}
+.token:hover { transform: scale(1.1); }
+
+.token.red   { background: #e74c3c; border-color: #c0392b; }
+.token.green { background: #2ecc71; border-color: #27ae60; }
+.token.yellow{ background: #f1c40f; border-color: #f39c12; }
+.token.blue  { background: #3498db; border-color: #2980b9; }
+
+/* ──────────────── Controls ──────────────── */
+.controls {
+  margin-top: 20px;
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.controls select,
+.controls button {
+  padding: 10px 24px;
+  border-radius: 50px;
+  border: none;
+  background: #2c3e50;
+  color: white;
+  font-weight: bold;
+  font-size: 1rem;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  transition: all 0.2s;
+}
+.controls select:hover,
+.controls button:hover {
+  transform: scale(1.05);
+  opacity: 0.9;
+}
+
+/* ──────────────── Theme: Classic ──────────────── */
+.classic .boardWrapper {
+  background: #2c3e50;
+}
+
+/* ──────────────── Theme: Neon ──────────────── */
+.neon .boardWrapper {
+  background: #0a0a1a;
+  box-shadow: 0 0 40px #00f7ff80;
+}
+.neon .board {
+  background: #0a0a1a;
+  box-shadow: inset 0 0 20px #00f7ff40;
+}
+.neon .cell {
+  border: 1px solid #00f7ff30;
+}
+.neon .path {
+  background: #1a1a3a;
+}
+.neon .centre {
+  background: #1a1a3a;
+  box-shadow: inset 0 0 30px #00f7ff20;
+}
+.neon .token {
+  box-shadow: 0 0 12px #00f7ff80;
+}
+
+/* ──────────────── Theme: Wooden ──────────────── */
+.wooden .boardWrapper {
+  background: #8b6b4d;
+  border: 6px solid #6b4c2a;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+}
+.wooden .board {
+  background: #6b4c2a;
+}
+.wooden .path {
+  background: #f0d5b0;
+}
+.wooden .centre {
+  background: #d4b48a;
+}
+
+/* ──────────────── 3D Mode ──────────────── */
+.mode3D .board {
+  transform: perspective(900px) rotateX(6deg) rotateY(-4deg) scale(1.02);
+  transform-style: preserve-3d;
+}
+.mode3D .cell {
+  transform: translateZ(2px);
+}
+.mode3D .token {
+  transform: translateZ(8px);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.4);
+}
