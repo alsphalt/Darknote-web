@@ -176,4 +176,62 @@ export default function Board({ roomId }) {
           if (tokenOnCell) break;
         }
 
-        const isSelectable = token
+        const isSelectable = tokenOnCell && movableIndices.includes(tokenIdx) && currentPlayerIndex === gameState.currentPlayerIndex;
+
+        cells.push({ row, col, type, bg, token: tokenOnCell, isSelectable, playerIdx, tokenIdx });
+      }
+    }
+  }
+
+  const handleTokenClick = (playerIdx, tokenIdx) => {
+    if (playerIdx === currentPlayerIndex && movableIndices.includes(tokenIdx)) {
+      selectToken(tokenIdx);
+    }
+  };
+
+  return (
+    <div className={`${styles.boardWrapper} ${styles[theme]} ${is3D ? styles.mode3D : ''}`}>
+      <div className={styles.board}>
+        {cells.map(({ row, col, type, bg, token, isSelectable, playerIdx, tokenIdx }) => (
+          <div
+            key={`${row}-${col}`}
+            className={`${styles.cell} ${styles[type]} ${isSelectable ? styles.selectable : ''}`}
+            style={{ backgroundColor: bg }}
+          >
+            {token && (
+              <div
+                className={`${styles.token} ${styles[token.color]} ${isSelectable ? styles.active : ''}`}
+                style={{ backgroundColor: token.color }}
+                onClick={() => handleTokenClick(playerIdx, tokenIdx)}
+              />
+            )}
+          </div>
+        ))}
+        <Dice3D onRoll={rollDice} />
+      </div>
+
+      {/* Controls */}
+      <div className={styles.controls}>
+        <select value={theme} onChange={(e) => setTheme(e.target.value)}>
+          <option value="classic">Classic</option>
+          <option value="neon">Neon</option>
+          <option value="wooden">Wooden</option>
+        </select>
+        <button onClick={() => setIs3D(!is3D)}>
+          {is3D ? '2D Mode' : '3D Mode'}
+        </button>
+        <div style={{ color: 'white', fontWeight: 'bold' }}>
+          Turn: {gameState?.players[gameState?.currentPlayerIndex]?.color || ''}
+        </div>
+        <div style={{ color: 'white', fontWeight: 'bold' }}>
+          Dice: {gameState?.diceValue || '-'}
+        </div>
+        {gameState?.winner !== null && (
+          <div style={{ color: 'gold', fontWeight: 'bold', fontSize: '1.2rem' }}>
+            🏆 {gameState?.players[gameState?.winner]?.color} wins!
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
