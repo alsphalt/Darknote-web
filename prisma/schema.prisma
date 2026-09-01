@@ -1,0 +1,64 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  username  String   @unique
+  password  String   // hashed
+  createdAt DateTime @default(now())
+  rooms     RoomUser[]
+  games     Game[]
+}
+
+model Room {
+  id           String   @id @default(cuid())
+  code         String   @unique // 6-digit alphanumeric
+  hostId       String   @map("host_id")
+  host         User     @relation(fields: [hostId], references: [id], onDelete: Cascade)
+  status       String   @default("waiting") // waiting, playing, finished
+  maxPlayers   Int      @default(4)
+  players      RoomUser[]
+  game         Game?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model RoomUser {
+  userId    String @map("user_id")
+  roomId    String @map("room_id")
+  color     String? // assigned color (red, green, yellow, blue)
+  joinedAt  DateTime @default(now())
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  room      Room   @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roomId])
+}
+
+model Game {
+  id            String   @id @default(cuid())
+  roomId        String   @unique @map("room_id")
+  room          Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  state         Json     // stores the complete game state (tokens, turn, etc.)
+  winnerId      String?  @map("winner_id")
+  winner        User?    @relation(fields: [winnerId], references: [id])
+  createdAt     DateTime @default(now())
+  finishedAt    DateTime?
+  moves         Move[]
+}
+
+model Move {
+  id        String   @id @default(cuid())
+  gameId    String   @map("game_id")
+  game      Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  playerId  String   @map("player_id")
+  player    User     @relation(fields: [playerId], references: [id])
+  data      Json     // dice value, token moved, new position, etc.
+  createdAt DateTime @default(now())
+}
