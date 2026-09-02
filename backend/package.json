@@ -1,5 +1,5 @@
 {
-  "name": "ludo-frontend",
+  "name": "ludo-backend-vercel",
   "version": "0.2.0",
   "private": true,
   "type": "module",
@@ -7,15 +7,9 @@
     "node": ">=18.17"
   },
   "scripts": {
-    "dev": "next dev",
-    "dev:server": "node --watch src/index.js",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint",
-    "test": "node --test shared/*.test.js",
+    "start": "node src/index.js",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate deploy",
-    "backend:sync": "bash scripts/sync-backend.sh",
     "postinstall": "prisma generate"
   },
   "dependencies": {
@@ -26,15 +20,9 @@
     "express": "^4.19.2",
     "express-rate-limit": "^7.4.0",
     "jsonwebtoken": "^9.0.2",
-    "next": "14.0.4",
-    "react": "^18",
-    "react-dom": "^18",
-    "socket.io": "^4.7.5",
-    "socket.io-client": "^4.8.1"
+    "socket.io": "^4.7.5"
   },
   "devDependencies": {
-    "eslint": "^8",
-    "eslint-config-next": "14.0.4",
     "prisma": "^5.22.0"
   }
 }

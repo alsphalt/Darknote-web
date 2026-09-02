@@ -29,6 +29,8 @@ Prisma ── PostgreSQL (users, sessions, rooms, games, moves)
 - `src/` — Express backend: routes, JWT+session middleware, Socket.IO handlers,
   game service
 - `prisma/` — schema + committed baseline migration
+- `backend/` — self-contained Vercel deploy unit for the API (mirrors `src/`,
+  `shared/`, `prisma/`, `.env.example`; regenerate with `npm run backend:sync`)
 - `tests/e2e.mjs` — full end-to-end test (needs a real PostgreSQL)
 
 ## Quick start (local development)
@@ -84,14 +86,63 @@ never hold secrets. `JWT_SECRET`/`DATABASE_URL` are server-only.
 - The room route `/room/[code]` is server-rendered on demand (works out of the
   box; no `export`/static-only config).
 
-### Backend → a long-running host (Railway / Render / Fly / a VPS)
-Socket.IO needs persistent connections, so the API **cannot** run on Vercel
-serverless functions. Deploy `src/` as a Node service:
+### Backend → a long-running host (Railway / Render / Fly / a VPS) — *preferred*
+Socket.IO needs persistent connections, so the most reliable real-time setup
+runs the API on a long-running Node host rather than Vercel serverless. Deploy
+`src/` as a Node service:
 ```bash
 npm install && npx prisma migrate deploy && npm run dev:server   # or use your host's start command
 ```
 Set `DATABASE_URL`, `JWT_SECRET`, `FRONTEND_URL` (include your Vercel domain,
 e.g. `https://ludo-app.vercel.app`), `TRUST_PROXY=true` behind a proxy.
+
+### Both on Vercel (backend + frontend) — *works since Vercel's WebSockets Beta*
+Since 2026 Vercel Functions can serve WebSockets (Beta, all plans, requires
+**Fluid compute** — the default for new projects created on/after Apr 23, 2025).
+Express deploys zero-config. This repo is already adapted:
+
+- Socket.IO is forced to **WebSocket-only transport** (server `src/index.js` +
+  client `contexts/SocketContext.js`) — Vercel does not support Socket.IO HTTP
+  long-polling.
+- The backend default-exports its http server (`src/index.js`) so Vercel's
+  zero-config Express detection can serve it.
+- Authoritative game state is persisted to Postgres on **every** roll/move
+  (`src/socket/socketHandlers.js`), so after a function instance recycles the
+  client's auto-reconnect + re-join resumes the exact game state.
+
+Runbook (one repo → **two Vercel projects**, monorepo):
+
+1. Create a PostgreSQL (Neon/Supabase/…) and apply the migration once:
+   ```bash
+   cd backend && npx prisma migrate deploy   # uses backend/.env DATABASE_URL
+   ```
+2. **Backend project** → import this repo, **Root Directory:** `backend/`
+   (Framework preset: Express — detected automatically).
+   Environment variables: `DATABASE_URL`, `JWT_SECRET`,
+   `FRONTEND_URL=https://<frontend-project>.vercel.app`, `TRUST_PROXY=true`.
+   It deploys to e.g. `https://<backend-project>.vercel.app`.
+3. **Frontend project** → import the same repo, **Root Directory:** `.`
+   (Framework preset: Next.js). Environment variable:
+   `NEXT_PUBLIC_BACKEND_URL=https://<backend-project>.vercel.app`.
+4. After editing root `src/`, `shared/` or `prisma/`, re-sync the deploy unit:
+   `npm run backend:sync` (see `scripts/sync-backend.sh`), then push.
+
+Caveats (Beta + serverless realities, see `docs/FINAL_REPORT.md` §24):
+- A WebSocket connection ends when its function instance reaches the max
+  duration — clients auto-reconnect and re-join (already implemented).
+- Sockets are pinned per function instance; in practice all players of one
+  room land on the same warm instance, but this is **not guaranteed**. If your
+  traffic ever spans instances you must add a Socket.IO Redis adapter plus a
+  DB-locked game actor (out of scope; the `backend/` unit is otherwise
+  instance-stateless thanks to per-event Postgres persistence).
+- REST/HTTP requests are fully serverless-safe (rate-limit counters are
+  per-instance and may reset).
+
+**Login "404 / That was not found" fix:** this message is the app's friendly
+error when the login API call returns HTTP 404 — i.e. the browser called a URL
+with no backend behind it (typically `NEXT_PUBLIC_BACKEND_URL` empty →
+same-origin `/api/*` on the frontend domain). Set `NEXT_PUBLIC_BACKEND_URL` to
+the real backend URL (step 3 above) and redeploy the frontend.
 
 ### Same-domain (optional)
 Proxy `/api` (and Socket.IO path) from the Next.js host to the Node backend —

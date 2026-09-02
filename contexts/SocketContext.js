@@ -107,7 +107,10 @@ export function SocketProvider({ children, code }) {
     }
 
     const sock = io(socketUrl(), {
-      transports: ['websocket', 'polling'],
+      // WebSocket only — required when the backend runs on Vercel (Fluid
+      // compute / WebSockets Beta does not support Socket.IO long-polling).
+      // Locally this is equally fine: all modern browsers support WebSocket.
+      transports: ['websocket'],
       auth: { token },
       reconnection: true,
       reconnectionAttempts: Infinity,

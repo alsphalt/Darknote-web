@@ -295,3 +295,30 @@ See `.env.example` and README table: `DATABASE_URL`, `JWT_SECRET`,
 `FRONTEND_URL`, `PORT`, `NEXT_PUBLIC_BACKEND_URL`, `LOG_LEVEL`, `TRUST_PROXY`.
 Vercel: set `NEXT_PUBLIC_BACKEND_URL`. Backend host additionally needs the
 Postgres migration applied (`npx prisma migrate deploy`).
+
+## 24. Addendum — both projects on Vercel (2026-09-03)
+Follow-up change: the backend can now also be deployed on **Vercel** (Express
+zero-config + WebSockets Beta on Fluid compute, per Vercel docs updated
+Aug 2026). Repo changes:
+
+1. `src/index.js` default-exports the built http server (Socket.IO attached)
+   so Vercel's zero-config Express detection serves it; local
+   `node src/index.js` startup is unchanged (main guard preserved).
+2. Socket.IO is **WebSocket-only** on both server (`src/index.js` options) and
+   client (`contexts/SocketContext.js` transports) — Vercel does not support
+   Socket.IO HTTP long-polling.
+3. Authoritative state persistence gaps closed in `src/socket/socketHandlers.js`
+   (post-roll turn-pass and autoAct no-move paths now persist before
+   broadcast), so a recycled function instance resumes exact state after the
+   client auto-reconnects/rejoins.
+4. New `backend/` self-contained deploy unit (own package.json; mirrors src/,
+   shared/, prisma/, .env.example). Vercel uploads only the project Root
+   Directory, so `scripts/sync-backend.sh` (`npm run backend:sync`) keeps it
+   current with root edits. Two Vercel projects: frontend Root `.`, backend
+   Root `backend/`.
+5. Known serverless boundaries that remain (unchanged in spirit from §22.6):
+   in-memory authoritative state is per-instance; a WebSocket ends at the
+   function max duration (reconnect+rejoin resumes from Postgres); sockets are
+   instance-pinned and cross-instance guarantees require a Socket.IO Redis
+   adapter + DB-locked actor if traffic ever spans instances. REST stays
+   instance-safe. Runbook and caveats: README "Both on Vercel".
