@@ -1,3 +1,4 @@
+import 'dotenv/config'; // load .env FIRST so DATABASE_URL/JWT_SECRET/PORT are always available
 import express from 'express';
 import http from 'http';
 import path from 'path';
