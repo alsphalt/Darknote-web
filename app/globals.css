@@ -7,9 +7,20 @@
 body {
   font-family: system-ui, -apple-system, sans-serif;
   background: #1a1a2e;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  color: #eee;
   min-height: 100vh;
-  overflow: hidden; /* disable page scroll */
+}
+
+a {
+  color: #ffd700;
+}
+
+button,
+select,
+input {
+  font-family: inherit;
+}
+
+::selection {
+  background: rgba(255, 215, 0, 0.35);
 }

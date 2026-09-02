@@ -1,0 +1,22 @@
+# Local PostgreSQL for development / end-to-end testing.
+# Usage:  docker compose up -d   (then copy .env.example to .env and adjust)
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: nox
+      POSTGRES_PASSWORD: nox_dev_password
+      POSTGRES_DB: ludo_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - nox_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nox -d ludo_db"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  nox_pgdata:
